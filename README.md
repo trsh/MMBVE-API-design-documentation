@@ -1,4 +1,4 @@
-# The perfect voxel engine SDK
+# The perfect voxel engine SDK specification (v0.1)
 
 The perfect voxel engine SDK for advanced game/sandbox developers. 
 
