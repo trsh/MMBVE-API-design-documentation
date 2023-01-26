@@ -16,7 +16,7 @@ Witten in C so can be used as header in HLSL/GLSL/C++/C and beyond.
 
 `changeSettings(int gridChunkSize, etc)` // Global settings
 
-`selectGridChunk(int x, int y, int z)` // Like world partition, but not just flat and why then name it WORLD
+`selectGridChunk(int x, int y, int z)` // Like world partition, but not just flat and why then name it WORLD, it's chunk
 
 `changeViewerPosition(float x, float y, float z)` // Will start to stream grid chunk(s) dependent on position and view distance
 
