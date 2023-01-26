@@ -69,4 +69,6 @@ onCollision(Collider c1, Collider c2){ // Whenever 2 voxels collide
 
 Engine takes care of acceleration structure creation and modification, compression, grid chunk stream in/out, LOD in most effective way. Provides also most effective ray cast (very important).
 
+## Programmer will then take it from here
+
 Programmer uses all of this to create own voxel game logic and experience. No Biased opinions on how physics should work, what renderer to use (taster/raytrace/pathtrace) and so on. The perfect engine SDK for voxel game developers.
