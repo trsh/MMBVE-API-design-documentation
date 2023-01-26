@@ -1,6 +1,6 @@
-# The perfect voxel engine SDK specification (v0.1)
+# The perfect blocky voxel engine SDK specification (v0.1)
 
-The perfect voxel engine SDK for advanced game/sandbox developers. 
+The perfect blocky (Teardown style) voxel engine SDK for advanced game/sandbox developers. 
 
 ## Motivation
 
