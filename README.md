@@ -1,6 +1,6 @@
 # The perfect voxel engine SDK
 
-The perfect voxel engine SDK for voxel advanced game/sandbox developers. 
+The perfect voxel engine SDK for advanced game/sandbox developers. 
 
 ## Motivation
 
