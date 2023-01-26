@@ -1,10 +1,10 @@
-# The perfect blocky voxel engine SDK specification (v0.1)
+# MMBVE API design documentation (v0.11)
 
-The perfect blocky (Teardown style) voxel engine SDK for advanced game/sandbox developers. 
+Minimalist multipurpose blocky voxel engine SDK API design documentation. 
 
 ## Motivation
 
-There are some good voxel engines out there, but those all seem to be very restrictive in terms of customization and come with large code bases that you need to understand and hack in order to add custom functionality. I want propose something more general in a form of API/SDK.
+There are some good voxel engines out there, but those all seem to be very restrictive in terms of customization and come with large code bases that you need to understand and hack in order to add custom functionality. I want to propose a minimalistic and generalized API that a voxel engine could provide/expose for advanced voxel game/sandbox developers.
 
 ## Lanuage
 
@@ -12,14 +12,81 @@ Witten in C so can be used as header in HLSL/GLSL/C++/C and beyond.
 
 ## Functionality in pseudo code
 
-`camera = createCamera(float viewDistance, float fov, etc)` // CPU only
+### Defentions
 
-`changeSettings(int gridChunkSize, etc)` // Global settings
+#### Camera:
+```
+Camera {
+  float3 position,
+  quat rotation,
+  float viewDistance,
+  float fov
+}
+```
 
-`selectGridChunk(int x, int y, int z)` // Like world partition, but not just flat and why then name it WORLD, it's chunk
+- `viewDistance` engines uses this to calculate when to stream in/out partitions. If camera position + view distance is out of current partition (in any direction) and in next one, it should be streamed in. And via versa.
+- `fov` field of view.
+- `position` current position of camera
+- `rotation` current rotation of camera
 
-`changeViewerPosition(float x, float y, float z)` // Will start to stream grid chunk(s) dependent on position and view distance
+#### Partition:
 
+Partitions are cubic shaped grids that form up into a larger uniform grid and are streamed in and out on demand. A partition where the player resides and it's neigbour partitions make up the space that player should be able to observe and where voxel manipulation is possible.
+
+```
+Partition {
+  Voxel[] voxels,
+  int3 position
+}
+```
+
+- `position` x, y, z coordinates of the partition being streamed.
+- `voxels` all voxels of the parition being streamed.
+
+#### Voxel (WIP)
+
+```
+Voxel {
+}
+```
+
+### Settings
+
+`changeSettings(int gridPartitionSize, int minVoxelSize)` 
+
+This should be called somwhere in game initialization phase to provide these important settings to the engine.
+
+- `gridPartitionSize` is the size of a single partition. 
+- `minVoxelSize` how small is the smallest voxel. This will have major impact on performance and visual appeal.
+
+### Camera
+
+`camera = createCamera(float viewDistance, float fov)` 
+
+Defining the camera.
+
+- `viewDistance` description in defintions.
+- `fov` description in defintions.
+
+`transformCamera(Camera camera, float3 position, quat rotation)` 
+
+Transforming the camera. This can trigger streaming of partition(s) dependent on position and view distance.
+
+- `camera` camera object
+- `position` desired position of camera
+- `rotation` desired rotation of camera
+
+`onGridChunkStream(Partition partition)` 
+
+Event fired whenever engine needs to stream (in/out) a partition. Can be used of procedural generation or other purposes.
+
+- `partition` description in defintions.
+
+### WIP
+
+/// `selectGridPartition(int x, int y, int z)` // Like world partition, but not just flat and why then name it WORLD, it's chunk
+
+/// `changeViewerPosition(float x, float y, float z)` // Will start to stream grid chunk(s) dependent on position and view distance
 
 `onGridChunkStream(int3 coords, voxel[] voxels)` // Event fired, whenever engine needs to stream new grid chunk from memory, or for procedural stuff
 
