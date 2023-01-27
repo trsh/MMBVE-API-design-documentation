@@ -12,7 +12,7 @@ Witten in C so can be used as header in HLSL/GLSL/C++/C and beyond.
 
 ## Functionality in pseudo code
 
-### Defentions
+### Defentions of structures
 
 #### Camera:
 ```
@@ -43,7 +43,7 @@ Partition {
 - `position` x, y, z coordinates of the partition being streamed.
 - `voxels` all voxels of the parition being streamed.
 
-#### Voxel (WIP)
+#### Voxel
 
 ```
 Voxel {
@@ -55,6 +55,17 @@ Voxel {
 ```
 The data here can be generic. Whatever is needed for certain purpose. The structure will be the same for all voxels and has do be declared before runtime. // TODO: this needs more info
 
+#### Group
+
+```
+Group {
+  // generic properties here
+  float damage
+}
+```
+
+The data here can be generic. Whatever is needed for certain purpose. The structure will be the same for all groups and has do be declared before runtime. // TODO: this needs more info
+
 ### Settings
 
 `changeSettings(int gridPartitionSize, int minVoxelSize)` 
@@ -63,6 +74,12 @@ This should be called somwhere in game initialization phase to provide these imp
 
 - `gridPartitionSize` is the size of a single partition. 
 - `minVoxelSize` how small is the smallest voxel. This will have major impact on performance and visual appeal.
+
+### Registers
+
+Engine can make impressive optimziations if it knows all possible variations of the voxel and group generic data. There for we have functions such as:
+
+//`registerMaterial(Color color, [other properties, like physics stuff])` // More properties, larger the map in MB
 
 ### Camera
 
@@ -99,8 +116,6 @@ We select a one of the Streamed in paritions, to work with.
 
 - `start` star position in grid, or bottom left corner
 - `end` end position in grid, or top right corner
-
-//`registerMaterial(Color color, [other properties, like physics stuff])` // More properties, larger the map in MB
 
 Rectangle selection, but other popular forms/brushes should exist. This does nothing on its own, but is needed for next function below.
 
@@ -151,12 +166,13 @@ Transform voxel or group by given position and rotation.
 
 ### Updating
 
-`addProperties(Voxel/Group voxel/group, [properties])` // TODO
+`changeProperty(Voxel/Group voxel/group, str propertyName, T value)` 
 
 Add or change properties of an existing voxel or group of voxels
 
 - `voxel/group` voxel or voxel group for wich to change the properties
-- `properties` TODO
+- `propertyName` property name // TODO: this feels dangerous
+- `value` property value
 
 ### Collisions
 
@@ -172,14 +188,14 @@ Even fired whenever 2 voxels collide.
 
 ### Raycast
 
-`rayCast(float3 origin, float3 direction, float3 lenngth = null, uint lod = null)` 
+`Hit hit = rayCast(float3 origin, float3 direction, float3 lenngth = null, uint lod = null)` 
 
 Raycast voxels in streamed in partitions. Must be as efficient as possible, because will be probably used for rendering.
 
 - `origin` origin of the ray
 - `direction` direction to shoot the ray
 - `lenngth` optional length for ray, by default its view distance
-- `lodLevel` optional level of detail, by default is accepts leaf voxels. More coarse voxels from tree stracture can be fetched by providing depth level here (TODO)
+- `lodLevel` optional level of detail, by default is accepts leaf voxels. More coarse voxels from tree stracture can be fetched by providing depth level here. Its properties are interpolated by child voxels. 
 
 ### Load and store
 
