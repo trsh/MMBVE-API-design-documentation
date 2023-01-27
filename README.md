@@ -40,31 +40,67 @@ Partition {
 }
 ```
 
-- `position` x, y, z coordinates of the partition being streamed.
-- `voxels` all voxels of the parition being streamed.
+- `position` x, y, z coordinates of the partition.
+- `voxels` array of all the voxels of in parition.
 
 #### Voxel
 
 ```
 Voxel {
   // generic properties here
-  float3 color,
-  float3 velocity,
+  float3 color,  
   float hardness
 }
 ```
-The data here can be generic. Whatever is needed for certain purpose. The structure will be the same for all voxels and has do be declared before runtime. More properties, larger the map in MB.
+The data here can be generic. Whatever is needed for certain purpose. The structure will be the same for all voxels and has do be declared before runtime. More properties, larger the map in MB. All possible varinations have to be registered (see in fallowing section).
 
 #### Group
 
 ```
 Group {
   // generic properties here
-  float damage
+  float damage,
+  float3 velocity
 }
 ```
 
 The data here can be generic. Whatever is needed for certain purpose. The structure will be the same for all groups and has do be declared before runtime. More properties, larger the map in MB.
+
+
+
+#### Voxel accessor
+
+```
+VoxelAccessor {
+  Voxel voxel
+}
+```
+
+This is object you use for updating voxel.
+
+#### Group accessor
+
+```
+GroupAccessor {
+  Group group
+}
+```
+
+This is object you use for updating group.
+
+#### Collider
+
+```
+Collider {
+  impactPoint,
+  voxelAccessor
+}
+```
+
+Object holding info about collision
+
+- `impactPoint` local hit point.
+- `voxelAccessor` voxel colliding.
 
 #### Hit
 
@@ -82,10 +118,9 @@ Hit {
 
 ### Registers
 
-Engine can make impressive optimziations if it knows all possible variations of the voxel and group generic data. There for we have functions such as:
+Engine can make impressive optimziations if it knows all possible variations of the voxel generic data. There for we have function:
 
-`registerVoxelProperties(str propertyName, [all values in array])`
-`registerGroupProperties(str propertyName, [all values in array])`
+`registerVoxelProperties(str propertyName, [all values in array])` // TODO: str properties can be dangerous
 
 ### Settings
 
@@ -145,57 +180,57 @@ Spawns block voxel with all its properties in selected area.
 
 Cancel the selection. Its auto canceled when starting a new one.
  
-`voxels = selectVoxelInRectArea(int3 start, int3 end)`
+`VoxelAccessor[] voxels = selectVoxelInRectArea(int3 start, int3 end)`
 
 Get all voxels in rectangular area.
 
 - `start` star position in grid, or bottom left corner
 - `end` end position in grid, or top right corner
 
+
 ### Grouping
 
-`Group group = groupVoxels(Voxel voxels = null)` 
+`GroupAccessor group = groupVoxels(Voxel voxels = null)` 
 
 Registers a voxel group. If the input value is null, it asumes that all voxels in active selection should be grouped.
 This very usefull to represent sort of a Entity, like a rock, that is composed from multiple voxels.
 
-`group = voxels[x].getGroup()`
+`GroupAccessor group = getVoxelGroup(VoxelAccessor voxel)`
 
-To query of voxel is in a group.
+Check/get if voxel is in a group.
 
-`voxels = group.getVoxels()`
+`VoxelAccessor[] voxels = getGroupVoxels(GroupAccessor group)`
 
-To query all voxels in a group.
+To get all voxels in a group.
 
 ### Transforms
 
-`transform(Voxel/Group voxel/group, float3 position, float3 rotation)` 
+`transform(VoxelAccessor voxel, float3 position, float3 rotation)` 
+`transform(GroupAccessor group, float3 position, float3 rotation)` 
 
 Transform voxel or group by given position and rotation.
 
-- `voxel/group` voxel or voxel group to transform
+- `voxel/group` voxel or voxel group accessor
 - `position` desired position for voxel/group
 - `rotation` desired rotation for voxel/group
 
-`onForce(Voxel/Group voxel/group, force)` // Override/hack behavior
-
-
 ### Updating
 
-`changeProperty(Voxel/Group voxel/group, str propertyName, T value)` 
+`changeProperty(VoxelAccessor voxel, str propertyName, T value)` 
+`changeProperty(GroupAccessor group, str propertyName, T value)` 
 
 Add or change properties of an existing voxel or group of voxels
 
-- `voxel/group` voxel or voxel group for wich to change the properties
+- `voxel/group` voxel or voxel group accessor
 - `propertyName` property name // TODO: this feels dangerous
 - `value` property value
 
 ### Collisions
 
 ```
-onCollision(Collider c1, Collider c2){ 
-	impactPoint1 = c1.getPoint()
-	p1 = c1.getVoxel().[someProperty]
+onCollision(Collider c1, Collider c2){  // Colliders for both voxels
+	float3 impactPoint1 = c1.impactPoint
+	VoxelAccessor va2 = c2.voxelAccessor
     	// code the collision reaction your self, dependent on properties etc.
 }
 ```
