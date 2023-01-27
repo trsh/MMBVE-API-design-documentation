@@ -1,6 +1,6 @@
-# MMBVE API design documentation (v0.11)
+# MMBVE API design documentation (v0.2)
 
-Minimalist multipurpose blocky voxel engine SDK API design documentation. 
+Minimalist multipurpose blocky voxel engine API design documentation. With blocky we mean Minecraft/Teardown style.
 
 ## Motivation
 
@@ -8,11 +8,11 @@ There are some good voxel engines out there, but those all seem to be very restr
 
 ## Lanuage
 
-Witten in C so can be used as header in HLSL/GLSL/C++/C and beyond.
+Witten in C so can be used as header in HLSL/GLSL/C++/C and beyond. Neverless some parts belong to CPU only, for othes it depends on the implementation.
 
 ## Functionality in pseudo code
 
-### Defentions of structures
+### Defentions of structures (only public properties)
 
 #### Camera:
 ```
@@ -31,7 +31,7 @@ Camera {
 
 #### Partition:
 
-Partitions are cubic shaped grids that form up into a larger uniform grid and are streamed in and out on demand. A partition where the player resides and it's neigbour partitions make up the space that player should be able to observe and where voxel manipulation is possible.
+Partitions are cubic shaped grids that form up into a larger uniform grid and are streamed in and out on demand (think of Unreal World partitions, but 3D). A partition where the player resides and it's neigbour partitions make up the space that player should be able to observe and where voxel manipulation is possible.
 
 ```
 Partition {
@@ -47,46 +47,58 @@ Partition {
 
 ```
 Voxel {
-  // generic properties here
+  // generic properties here - primitives only
   float3 color,  
   float hardness
 }
 ```
-The data here can be generic. Whatever is needed for certain purpose. The structure will be the same for all voxels and has do be declared before runtime. More properties, larger the map in MB. All possible varinations have to be registered (see in fallowing section).
+The data here is generic. Whatever is needed for certain purpose. The structure will be the same for all voxels and has do be declared before runtime. More properties, larger the map in MB. All possible varinations have to be registered (see in fallowing section "Registers").
 
 #### Group
 
 ```
 Group {
-  // generic properties here
+
+  // generic properties here - primitives only
   float damage,
   float3 velocity
 }
 ```
 
-The data here can be generic. Whatever is needed for certain purpose. The structure will be the same for all groups and has do be declared before runtime. More properties, larger the map in MB.
-
+The data here is generic. Whatever is needed for certain purpose. The structure will be the same for all groups and has do be declared before runtime. More properties, larger the map in MB.
 
 
 #### Voxel accessor
 
 ```
 VoxelAccessor {
+  int3 position,
+  int lod,
   Voxel voxel
 }
 ```
 
-This is object you use for updating voxel.
+- `position` voxel index position in the grid
+- `lod` depth of voxel
+- `voxel` structure described above
+
+This is object you use for updating and querying voxel.
 
 #### Group accessor
 
 ```
 GroupAccessor {
+  float3 position,
+  quat rotation,
   Group group
 }
 ```
 
-This is object you use for updating group.
+- `position` current position of camera
+- `rotation` current rotation of camera
+- `group` structure described above
+
+This is object you use for updating and querying group.
 
 #### Collider
 
@@ -97,40 +109,45 @@ Collider {
 }
 ```
 
-Object holding info about collision
+Object holding info about collision.
 
-- `impactPoint` local hit point.
-- `voxelAccessor` voxel colliding.
+- `impactPoint` local hit point
+- `voxelAccessor` voxel colliding
 
 #### Hit
 
 ```
 Hit {
   float3 localPointOnVoxel
-  Voxel voxel
+  VoxelAccessor voxel
   float length
 }
 ```
 
-- `localPointOnVoxel` local hit point.
-- `voxel` voxel being hit.
-- `length` ray total length.
+- `localPointOnVoxel` local hit point
+- `voxel` voxel being hit
+- `length` ray total length
 
 ### Registers
 
 Engine can make impressive optimziations if it knows all possible variations of the voxel generic data. There for we have function:
 
-`registerVoxelProperties(str propertyName, [all values in array])` // TODO: str properties can be dangerous
+`registerVoxelProperties<T = propery of Voxel>(keyof T propery, valueof T[] values)`
+
+- `propery` generic property like `color`
+- `values` generic property value like `{ float3(1,0,0), float3(1,1,0) }`
+
+NOTE: This is not optional.
 
 ### Settings
 
-`changeSettings(int gridPartitionSize, int minVoxelSize)` 
+`changeSettings(int gridPartitionSize, int minVoxelSize, int treeDepth)` 
 
 This should be called somwhere in game initialization phase to provide these important settings to the engine.
 
-- `gridPartitionSize` is the size of a single partition. 
-- `minVoxelSize` how small is the smallest voxel. This will have major impact on performance and visual appeal.
-
+- `gridPartitionSize` is the size of a single partition
+- `minVoxelSize` how small is the smallest voxel. This will have major impact on performance and visual appeal
+- `treeDepth` how many lod levels each partition grid tree (acceleration structure) will have
 
 ### Camera
 
@@ -138,8 +155,8 @@ This should be called somwhere in game initialization phase to provide these imp
 
 Defining the camera.
 
-- `viewDistance` description in defintions.
-- `fov` description in defintions.
+- `viewDistance` description in defintions
+- `fov` description in defintions
 
 `transformCamera(Camera camera, float3 position, quat rotation)` 
 
@@ -153,13 +170,13 @@ Transforming the camera. This can trigger streaming of partition(s) dependent on
 
 Event fired whenever engine needs to stream (in/out) a partition. Can be used of procedural generation or other purposes.
 
-- `partition` description in defintions.
+- `partition` description in defintions
 
 ### Selection
 
 `selectGridPartition(int3 coords)` 
 
-We select a one of the Streamed in paritions, to work with.
+We select a one of the Streamed in paritions, to work with. All the things below will take place in this selected partition.
 
 - `coords` partition global 3d coordinates
 
@@ -174,7 +191,7 @@ Rectangle selection, but other popular forms/brushes should exist. This does not
 
 Spawns block voxel with all its properties in selected area. 
 
-- `Voxel` description in defintions.
+- `voxel` description in defintions.
 
 `selectEnd()`
 
@@ -205,30 +222,29 @@ To get all voxels in a group.
 
 ### Transforms
 
-`transform(VoxelAccessor voxel, float3 position, float3 rotation)` 
 `transform(GroupAccessor group, float3 position, float3 rotation)` 
 
-Transform voxel or group by given position and rotation.
+Transform group by given position and rotation.
 
-- `voxel/group` voxel or voxel group accessor
+- `group` voxel group accessor
 - `position` desired position for voxel/group
 - `rotation` desired rotation for voxel/group
 
 ### Updating
 
-`changeProperty(VoxelAccessor voxel, str propertyName, T value)` 
-`changeProperty(GroupAccessor group, str propertyName, T value)` 
+`changeProperty<T = propery of Voxel>(VoxelAccessor voxel, keyof T property, valueof T value)` 
+`changeProperty<T = propery of Group>(GroupAccessor group, keyof T property, valueof T value)` 
 
-Add or change properties of an existing voxel or group of voxels
+Change properties of an existing voxel or group of voxels
 
 - `voxel/group` voxel or voxel group accessor
-- `propertyName` property name // TODO: this feels dangerous
-- `value` property value
+- `property` generic property
+- `value` generic property value
 
 ### Collisions
 
 ```
-onCollision(Collider c1, Collider c2){  // Colliders for both voxels
+onCollision(Collider c1, Collider c2){  // Colliders for both voxels, description is in defintions
 	float3 impactPoint1 = c1.impactPoint
 	VoxelAccessor va2 = c2.voxelAccessor
     	// code the collision reaction your self, dependent on properties etc.
@@ -266,7 +282,7 @@ Manually load some parition.
 
 ## What should happen under the hood
 
-Engine takes care of acceleration structure creation and modification, compression, partition stream in/out, raycast by lod, etc.
+Engine takes care of acceleration structure creation and modification, compression, partition stream in/out, raycast by lod, etc. Also speculatively deactivates and activates colliders depenging on actions in the parition.
 
 ## Programmer will then take it from here
 
@@ -278,11 +294,15 @@ Programmer uses all of this to create own voxel game logic and experience. No Bi
 
 No. Not at all. You can use the Raycast for such purposes, but the rest is for you to implement.
 
+#### Does this API advanced physics?
+
+No. Not at all. Only collisions, but the rest is for you to implement.
+
 #### Why do we need groups?
 
 We can fast access voxels that make up some kind of a entity, like a door, rock, etc.
 
-#### Ho can you rotate things in a grid structure?
+#### How can you rotate and transform grpups in a grid structure with float precision?
 
 I am not sure at the moment on the implemntation of this, but as you can see lots of voxe engines (Teardown, Atomontage, etc.) are doing this.
 
