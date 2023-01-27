@@ -141,13 +141,14 @@ NOTE: This is not optional.
 
 ### Settings
 
-`changeSettings(int gridPartitionSize, int minVoxelSize, int treeDepth)` 
+`changeSettings(int gridPartitionSize, int minVoxelSize, int treeDepth, Enum accelerationStructure = null)` 
 
 This should be called somwhere in game initialization phase to provide these important settings to the engine.
 
 - `gridPartitionSize` is the size of a single partition
 - `minVoxelSize` how small is the smallest voxel. This will have major impact on performance and visual appeal
 - `treeDepth` how many lod levels each partition grid tree (acceleration structure) will have
+- `accelerationStructure` engine can provide multiple acceleration structures, like octees, brickmaps, sparse brick sets, etc. If you change this after saving a map, you wont be able, most likely to load it, unless there is some centralized storage format.
 
 ### Camera
 
