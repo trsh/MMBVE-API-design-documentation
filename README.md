@@ -47,8 +47,13 @@ Partition {
 
 ```
 Voxel {
+  // generic properties here
+  float3 color,
+  float3 velocity,
+  float hardness
 }
 ```
+The data here can be generic. Whatever is needed for certain purpose. The structure will be the same for all voxels and has do be declared before runtime. // TODO: this needs more info
 
 ### Settings
 
@@ -82,60 +87,140 @@ Event fired whenever engine needs to stream (in/out) a partition. Can be used of
 
 - `partition` description in defintions.
 
-### WIP
+### Selection
 
-/// `selectGridPartition(int x, int y, int z)` // Like world partition, but not just flat and why then name it WORLD, it's chunk
+`selectGridPartition(int3 coords)` 
 
-/// `changeViewerPosition(float x, float y, float z)` // Will start to stream grid chunk(s) dependent on position and view distance
+We select a one of the Streamed in paritions, to work with.
 
-`onGridChunkStream(int3 coords, voxel[] voxels)` // Event fired, whenever engine needs to stream new grid chunk from memory, or for procedural stuff
+- `coords` partition global 3d coordinates
 
-`selectGridRecArea(int x1, int y1, int z1, int x2, int y2, int z2)` // Rectangle selection, but other popular forms/brushes should exist
+`selectGridRectAreaBegin(int3 start, int3 end)` 
 
-`registerMaterial(Color color, [other properties, like physics stuff])` // More properties, larger the map in MB
+- `start` star position in grid, or bottom left corner
+- `end` end position in grid, or top right corner
 
-`setVoxelsInArea(material[x])` // Spawns voxel with given material in above selected area
+//`registerMaterial(Color color, [other properties, like physics stuff])` // More properties, larger the map in MB
+
+Rectangle selection, but other popular forms/brushes should exist. This does nothing on its own, but is needed for next function below.
+
+`setVoxelsInArea(Voxel voxel)` 
+
+Spawns block voxel with all its properties in selected area. 
+
+- `Voxel` description in defintions.
+
+`selectEnd()`
+
+Cancel the selection. Its auto canceled when starting a new one.
  
- 
-`voxels = selectVoxelInRectArea(int x1, int y1, int z1, int x2, int y2, int z2)`
+`voxels = selectVoxelInRectArea(int3 start, int3 end)`
 
-`group = groupVoxels(voxels)` // These voxels will be linked, related to each other trough group
+Get all voxels in rectangular area.
+
+- `start` star position in grid, or bottom left corner
+- `end` end position in grid, or top right corner
+
+### Grouping
+
+`Group group = groupVoxels(Voxel voxels = null)` 
+
+Registers a voxel group. If the input value is null, it asumes that all voxels in active selection should be grouped.
+This very usefull to represent sort of a Entity, like a rock, that is composed from multiple voxels.
 
 `group = voxels[x].getGroup()`
 
+To query of voxel is in a group.
+
 `voxels = group.getVoxels()`
 
+To query all voxels in a group.
 
+### Transforms
 
-`transform(Voxel/Group voxel/group, pos, rot)` // Transform by force
+`transform(Voxel/Group voxel/group, float3 position, float3 rotation)` 
 
-`addForce((Voxel/Group voxel/group, float3 strength, float3 localPoint, ForceType force)` // Or with physics (force, impulse, acceleration)
+Transform voxel or group by given position and rotation.
+
+- `voxel/group` voxel or voxel group to transform
+- `position` desired position for voxel/group
+- `rotation` desired rotation for voxel/group
 
 `onForce(Voxel/Group voxel/group, force)` // Override/hack behavior
 
 
+### Updating
 
-`addProperties(Voxel/Group voxel/group, [properties])` // Add more properties (like damage)
+`addProperties(Voxel/Group voxel/group, [properties])` // TODO
+
+Add or change properties of an existing voxel or group of voxels
+
+- `voxel/group` voxel or voxel group for wich to change the properties
+- `properties` TODO
+
+### Collisions
 
 ```
-onCollision(Collider c1, Collider c2){ // Whenever 2 voxels collide
+onCollision(Collider c1, Collider c2){ 
 	impactPoint1 = c1.getPoint()
-	velocity2 = c2.getVelocity()
-	m1 = c1.getVoxel().getMaterial()
-    // code the collision reaction your self, dependent on material etc
+	p1 = c1.getVoxel().[someProperty]
+    	// code the collision reaction your self, dependent on properties etc.
 }
 ```
 
-`rayCast(pos, dir, len)` // Most effective way possible
+Even fired whenever 2 voxels collide. 
 
-`load(str file, int3 gridChunkCoords)` // CPU only
+### Raycast
 
-`save(str file, int3 gridChunkCoords)` // CPU only
+`rayCast(float3 origin, float3 direction, float3 lenngth = null, uint lod = null)` 
+
+Raycast voxels in streamed in partitions. Must be as efficient as possible, because will be probably used for rendering.
+
+- `origin` origin of the ray
+- `direction` direction to shoot the ray
+- `lenngth` optional length for ray, by default its view distance
+- `lodLevel` optional level of detail, by default is accepts leaf voxels. More coarse voxels from tree stracture can be fetched by providing depth level here (TODO)
+
+### Load and store
+
+`save(str file, int3 partitionCoords)`
+
+Store parition. 
+
+- `file` file destination
+- `partitionCoords` partition coords to store
+
+`load(str file, int3 partitionCoords)` 
+
+Manually load some parition.
+
+- `file` file destination
+- `partitionCoords` partition coords to load
 
 ## What should happen under the hood
 
-Engine takes care of acceleration structure creation and modification, compression, grid chunk stream in/out, LOD in most effective way. Provides also most effective ray cast (very important).
+Engine takes care of acceleration structure creation and modification, compression, partition stream in/out, raycast by lod, etc.
 
 ## Programmer will then take it from here
 
-Programmer uses all of this to create own voxel game logic and experience. No Biased opinions on how physics should work, what renderer to use (taster/raytrace/pathtrace) and so on. The perfect engine SDK for voxel game developers.
+Programmer uses all of this to create own voxel game logic and experience. No Biased opinions on how physics should work, what renderer to use (taster/raytrace/pathtrace) and so on. 
+
+### Questions and answers
+
+#### Does this API provide rendering?
+
+No. Not at all. You can use the Raycast for such purposes, but the rest is for you to implement.
+
+#### Why do we need groups?
+
+We can fast access voxels that make up some kind of a entity, like a door, rock, etc.
+
+#### Ho can you rotate things in a grid structure?
+
+I am not sure at the moment on the implemntation of this, but as you can see lots of voxe engines (Teardown, Atomontage, etc.) are doing this.
+
+#### What is meant by locky?
+
+Think of Minecraft, Teardown, etc. Blocks.
+
+
