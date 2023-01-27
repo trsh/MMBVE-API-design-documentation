@@ -31,6 +31,8 @@ Camera {
 
 #### Partition:
 
+TODO: Image here
+
 Partitions are cubic shaped grids that form up into a larger uniform grid and are streamed in and out on demand (think of Unreal World partitions, but 3D). A partition where the player resides and it's neigbour partitions make up the space that player should be able to observe and where voxel manipulations/events are possible.
 
 ```
@@ -175,7 +177,9 @@ Event fired whenever engine needs to stream (in/out) a partition. Can be used of
 
 ### Selection
 
-TODO: image of coordiation system trough partitions
+`selectPartition(int3 coords)` 
+
+We select a one of the Streamed in paritions, to work with. All the things below will take place in this selected partition and its local coordinates.
 
 - `coords` partition global 3d coordinates
 
