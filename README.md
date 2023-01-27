@@ -8,7 +8,7 @@ There are some good voxel engines out there, but those all seem to be very restr
 
 ## Lanuage
 
-Witten in C so can be used as header in HLSL/GLSL/C++/C and beyond. Neverless some parts belong to CPU only, for othes it depends on the implementation.
+Ideally witten in C so can be used as header in HLSL/GLSL/C++/C and beyond (inspired by https://github.com/AcademySoftwareFoundation/openvdb/blob/master/nanovdb/nanovdb/PNanoVDB.h). Neverless some parts belong to CPU only, for othes it depends on the implementation. The tehnical imlementation details are out of the scope of this document.
 
 ## Functionality in pseudo code
 
@@ -31,9 +31,11 @@ Camera {
 
 #### Partition:
 
-TODO: Image here
+Top view for illustration purposes only:  
+![vxp](https://user-images.githubusercontent.com/3727523/215129017-43bc99f0-9022-4e8e-8630-94697078bd7f.png)
 
-Partitions are cubic shaped grids that form up into a larger uniform grid and are streamed in and out on demand (think of Unreal World partitions, but 3D). A partition where the player resides and it's neigbour partitions make up the space that player should be able to observe and where voxel manipulations/events are possible.
+
+Partitions are cubic shaped grids that form up into a larger uniform grid and are streamed in and out on demand (think of Unreal World partitions, but 3D). A partition where the player resides and it's neigbour partitions make up the space that player should be able to observe and where voxel manipulations/events are possible. The goal is to always have 8 neighbour partitions around current one.
 
 ```
 Partition {
@@ -143,13 +145,13 @@ NOTE: This is not optional.
 
 ### Settings
 
-`changeSettings(int gridPartitionSize, int minVoxelSize, int treeDepth, Enum accelerationStructure = null)` 
+`changeSettings(int gridPartitionSize, int minVoxelSize, int maxTreeDepth, Enum accelerationStructure = null)` 
 
 This should be called somwhere in game initialization phase to provide these important settings to the engine.
 
 - `gridPartitionSize` is the size of a single partition
 - `minVoxelSize` how small is the smallest voxel. This will have major impact on performance and visual appeal
-- `treeDepth` how many lod levels each partition grid tree (acceleration structure) will have
+- `maxTreeDepth` how many lod levels each partition grid tree (acceleration structure) will have
 - `accelerationStructure` engine can provide multiple acceleration structures, like octees, brickmaps, sparse brick sets, etc. If you change this after saving a map, you wont be able, most likely to load it, unless there is some centralized storage format.
 
 ### Camera
@@ -192,7 +194,7 @@ Rectangle selection, but other popular forms/brushes should exist. This does not
 
 `setVoxelsInArea(Voxel voxel)` 
 
-Spawns block voxel with all its properties in selected area. 
+Spawns block voxel with all its properties in selected area, all of it. 
 
 - `voxel` description in defintions.
 
@@ -254,7 +256,7 @@ onCollision(Collider c1, Collider c2){  // Colliders for both voxels, descriptio
 }
 ```
 
-Even fired whenever 2 voxels collide. 
+Event fired whenever 2 voxels collide. 
 
 ### Raycast
 
@@ -265,7 +267,7 @@ Raycast voxels in streamed in partitions. Must be as efficient as possible, beca
 - `origin` origin of the ray
 - `direction` direction to shoot the ray
 - `lenngth` optional length for ray, by default its view distance
-- `lodLevel` optional level of detail, by default is accepts leaf voxels. More coarse voxels from tree stracture can be fetched by providing depth level here. Its properties are interpolated by child voxels. 
+- `lodLevel` optional level of detail, by default is accepts leaf voxels. More coarse voxels from tree stracture can be fetched by providing depth level here. Its properties are interpolated from child voxels. 
 
 ### Load and store
 
@@ -307,10 +309,9 @@ We can fast access voxels that make up some kind of a entity, like a door, rock,
 
 #### How can you rotate and transform groups in a grid structure with float precision?
 
-I am not sure at the moment on the implemntation of this, but as you can see lots of voxe engines (Teardown, Atomontage, etc.) are doing this.
+As you can see lots of voxe engines (Teardown, The Sandbox, Atomontage, etc.) are already doing this. Thencial details are not part of this document.
 
 #### What is meant with 'blocky'?
 
 Think of Minecraft, Teardown, etc. Blocks.
-
 
