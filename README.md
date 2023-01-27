@@ -177,7 +177,7 @@ Event fired whenever engine needs to stream (in/out) a partition. Can be used of
 
 ### Selection
 
-`selectGridPartition(int3 coords)` 
+`selectPartition(int3 coords)` 
 
 We select a one of the Streamed in paritions, to work with. All the things below will take place in this selected partition and its local coordinates.
 
