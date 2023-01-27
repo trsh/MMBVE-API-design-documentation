@@ -31,7 +31,7 @@ Camera {
 
 #### Partition:
 
-Partitions are cubic shaped grids that form up into a larger uniform grid and are streamed in and out on demand (think of Unreal World partitions, but 3D). A partition where the player resides and it's neigbour partitions make up the space that player should be able to observe and where voxel manipulation is possible.
+Partitions are cubic shaped grids that form up into a larger uniform grid and are streamed in and out on demand (think of Unreal World partitions, but 3D). A partition where the player resides and it's neigbour partitions make up the space that player should be able to observe and where voxel manipulations/events are possible.
 
 ```
 Partition {
@@ -174,9 +174,7 @@ Event fired whenever engine needs to stream (in/out) a partition. Can be used of
 
 ### Selection
 
-`selectGridPartition(int3 coords)` 
-
-We select a one of the Streamed in paritions, to work with. All the things below will take place in this selected partition.
+TODO: image of coordiation system trough partitions
 
 - `coords` partition global 3d coordinates
 
@@ -207,7 +205,7 @@ Get all voxels in rectangular area.
 
 ### Grouping
 
-`GroupAccessor group = groupVoxels(Voxel voxels = null)` 
+`GroupAccessor group = groupVoxels(VoxelAccessor[] voxels = null)` 
 
 Registers a voxel group. If the input value is null, it asumes that all voxels in active selection should be grouped.
 This very usefull to represent sort of a Entity, like a rock, that is composed from multiple voxels.
@@ -302,11 +300,11 @@ No. Not at all. Only collisions, but the rest is for you to implement.
 
 We can fast access voxels that make up some kind of a entity, like a door, rock, etc.
 
-#### How can you rotate and transform grpups in a grid structure with float precision?
+#### How can you rotate and transform groups in a grid structure with float precision?
 
 I am not sure at the moment on the implemntation of this, but as you can see lots of voxe engines (Teardown, Atomontage, etc.) are doing this.
 
-#### What is meant by locky?
+#### What is meant with 'blocky'?
 
 Think of Minecraft, Teardown, etc. Blocks.
 
