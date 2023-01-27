@@ -53,7 +53,7 @@ Voxel {
   float hardness
 }
 ```
-The data here can be generic. Whatever is needed for certain purpose. The structure will be the same for all voxels and has do be declared before runtime. // TODO: this needs more info
+The data here can be generic. Whatever is needed for certain purpose. The structure will be the same for all voxels and has do be declared before runtime. More properties, larger the map in MB.
 
 #### Group
 
@@ -64,7 +64,28 @@ Group {
 }
 ```
 
-The data here can be generic. Whatever is needed for certain purpose. The structure will be the same for all groups and has do be declared before runtime. // TODO: this needs more info
+The data here can be generic. Whatever is needed for certain purpose. The structure will be the same for all groups and has do be declared before runtime. More properties, larger the map in MB.
+
+#### Hit
+
+```
+Hit {
+  float3 localPointOnVoxel
+  Voxel voxel
+  float length
+}
+```
+
+- `localPointOnVoxel` local hit point.
+- `voxel` voxel being hit.
+- `length` ray total length.
+
+### Registers
+
+Engine can make impressive optimziations if it knows all possible variations of the voxel and group generic data. There for we have functions such as:
+
+`registerVoxelProperties(str propertyName, [all values in array])`
+`registerGroupProperties(str propertyName, [all values in array])`
 
 ### Settings
 
@@ -75,11 +96,6 @@ This should be called somwhere in game initialization phase to provide these imp
 - `gridPartitionSize` is the size of a single partition. 
 - `minVoxelSize` how small is the smallest voxel. This will have major impact on performance and visual appeal.
 
-### Registers
-
-Engine can make impressive optimziations if it knows all possible variations of the voxel and group generic data. There for we have functions such as:
-
-//`registerMaterial(Color color, [other properties, like physics stuff])` // More properties, larger the map in MB
 
 ### Camera
 
@@ -221,7 +237,7 @@ Engine takes care of acceleration structure creation and modification, compressi
 
 Programmer uses all of this to create own voxel game logic and experience. No Biased opinions on how physics should work, what renderer to use (taster/raytrace/pathtrace) and so on. 
 
-### Questions and answers
+## Questions and answers
 
 #### Does this API provide rendering?
 
