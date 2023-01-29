@@ -14,7 +14,7 @@ Ideally witten in C so can be used as header in HLSL/GLSL/C++/C and beyond (insp
 
 ### Defentions of structures (only public properties)
 
-#### Camera:
+#### Camera
 ```
 Camera {
   float3 position,
@@ -31,7 +31,7 @@ Camera {
 - `rotation` current rotation of camera in euler angles
 - `partitionCoords` partition coordinates where camera resides at this moment
 
-#### Partition:
+#### Partition
 
 Top view for illustration purposes only:  
 ![vxp](https://user-images.githubusercontent.com/3727523/215129017-43bc99f0-9022-4e8e-8630-94697078bd7f.png)
@@ -41,13 +41,11 @@ Partitions are cubic shaped grids that form up into a larger uniform grid and ar
 
 ```
 Partition {
-  Voxel[] voxels,
   int3 position
 }
 ```
 
 - `position` x, y, z coordinates of the partition.
-- `voxels` array of all the voxels of in parition.
 
 #### Voxel
 
@@ -88,6 +86,22 @@ VoxelAccessor {
 - `voxel` structure described above
 
 This is object you use for updating and querying voxel.
+
+#### Voxels selector
+
+```
+VoxelsSelector {
+  VoxelAccessor[] getAll(),
+  VoxelAccessor[] slice(uint from, uint to),
+  VoxelAccessor[] splice(uint from, uint to, VoxelAccessor va),
+}
+```
+
+- `getAll()` getter for all voxel accessors
+- `slice(uint from, uint to)` take a piece of voxel accessors
+- `splice(uint from, uint to, VoxelAccessor va = null)` insert, replace or remove voxel accessor(s) // concept from [JavaScript splice](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice)
+
+This is object is used to point to multiple voxels.
 
 #### Group accessor
 
@@ -182,9 +196,9 @@ Event fired whenever engine needs to stream (in/out) a partition. Can be used of
 
 - `partition` description in defintions
 
-`getAllActivePartitions(int3 coords = null)` 
+`Partition[] partitions = getAllActivePartitions(int3 coords = null)` 
 
-Get all stramed in or streaming in paritions at this moment. Always returned in specific order.
+Get all stramed in or streaming in paritions at this moment.
 
 - `coords` if provided, will return 1 respestive partition or null if its not active
 
@@ -192,18 +206,18 @@ Get all stramed in or streaming in paritions at this moment. Always returned in 
 
 `selectPartition(int3 coords)` 
 
-We select a one of the Streamed in paritions, to work with. All the things below will take place in this selected partition and its local coordinates.
+We select a one of the Streamed in paritions, to work with. All the things below will take place in this selected partition and its local coordinates. It should throw error, if parition is not active streamed in.
 
 - `coords` partition global 3d coordinates
 
-`VoxelAccessor[] voxels = setVoxels(int3[] gridCellCoords, Voxel voxel)` 
+`VoxelsSelector voxelsSel = setVoxels(int3[] gridCellCoords, Voxel voxel)` 
 
 Spawns block voxel with all its properties in selected area, all of it. Returns those new voxels.
 
 - `gridCellCoords` grid cell coordinates where to spawn voxel
 - `voxel` description in defintions
  
-`VoxelAccessor[] voxels = selectVoxelInRectArea(int3 start, int3 end)`
+`VoxelsSelector voxelsSel = selectVoxelInRectArea(int3 start, int3 end)`
 
 Get all voxels in rectangular area.
 
@@ -213,10 +227,9 @@ Get all voxels in rectangular area.
 
 ### Grouping
 
-`GroupAccessor group = groupVoxels(VoxelAccessor[] voxels = null)` 
+`GroupAccessor group = groupVoxels(VoxelsSelector voxelsSel = null)` 
 
-Registers a voxel group. If the input value is null, it asumes that all voxels in active selection should be grouped.
-This very usefull to represent sort of a Entity, like a rock, that is composed from multiple voxels.
+Registers a voxel group. This very usefull to represent sort of a Entity, like a rock, that is composed from multiple voxels.
 
 Group can never be larger than one parition.
 
@@ -224,7 +237,7 @@ Group can never be larger than one parition.
 
 Check/get if voxel is in a group.
 
-`VoxelAccessor[] voxels = getGroupVoxels(GroupAccessor group)`
+`VoxelsSelector voxelsSel = getGroupVoxels(GroupAccessor group)`
 
 To get all voxels in a group. Voxels belonging to a partition that is not yet streamed in wont be returned. This can be checked by 'GroupAccessor.voxelCount'
 
