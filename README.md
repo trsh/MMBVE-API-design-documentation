@@ -93,7 +93,7 @@ This is object you use for updating and querying voxel.
 VoxelsSelector {
   VoxelAccessor[] getAll(),
   VoxelAccessor[] slice(uint from, uint to),
-  VoxelAccessor[] splice(uint from, uint to, VoxelAccessor va),
+  VoxelAccessor[] splice(uint from, uint to, VoxelAccessor va = null),
 }
 ```
 
@@ -227,7 +227,7 @@ Get all voxels in rectangular area.
 
 ### Grouping
 
-`GroupAccessor group = groupVoxels(VoxelsSelector voxelsSel = null)` 
+`GroupAccessor group = groupVoxels(VoxelsSelector voxelsSel)` 
 
 Registers a voxel group. This very usefull to represent sort of a Entity, like a rock, that is composed from multiple voxels.
 
@@ -254,11 +254,12 @@ Transform group by given position and rotation.
 ### Updating
 
 `changeProperty<T = propery of Voxel>(VoxelAccessor voxel, keyof T property, valueof T value)` 
+`changeProperty<T = propery of Voxel>(VoxelsSelector voxelSel, keyof T property, valueof T value)`
 `changeProperty<T = propery of Group>(GroupAccessor group, keyof T property, valueof T value)` 
 
 Change properties of an existing voxel or group of voxels
 
-- `voxel/group` voxel or voxel group accessor
+- `voxels/voxelSel/group` voxel accessor, voxel selection or voxel group accessor
 - `property` generic property
 - `value` generic property value
 
