@@ -1,4 +1,4 @@
-# MMBVE API design documentation (v0.2)
+# MMBVE API design documentation (v0.3)
 
 Minimalist multipurpose blocky voxel engine API design documentation. With blocky we mean Minecraft/Teardown style.
 
@@ -14,22 +14,24 @@ Ideally witten in C so can be used as header in HLSL/GLSL/C++/C and beyond (insp
 
 ### Defentions of structures (only public properties)
 
-#### Camera:
+#### Camera
 ```
 Camera {
   float3 position,
-  quat rotation,
+  float3 rotation,
   float viewDistance,
-  float fov
+  float fov,
+  int3 partitionCoords
 }
 ```
 
 - `viewDistance` engines uses this to calculate when to stream in/out partitions. If camera position + view distance is out of current partition (in any direction) and in next one, it should be streamed in. And via versa.
 - `fov` field of view.
 - `position` current position of camera
-- `rotation` current rotation of camera
+- `rotation` current rotation of camera in euler angles
+- `partitionCoords` partition coordinates where camera resides at this moment
 
-#### Partition:
+#### Partition
 
 Top view for illustration purposes only:  
 ![vxp](https://user-images.githubusercontent.com/3727523/215129017-43bc99f0-9022-4e8e-8630-94697078bd7f.png)
@@ -39,13 +41,11 @@ Partitions are cubic shaped grids that form up into a larger uniform grid and ar
 
 ```
 Partition {
-  Voxel[] voxels,
   int3 position
 }
 ```
 
 - `position` x, y, z coordinates of the partition.
-- `voxels` array of all the voxels of in parition.
 
 #### Voxel
 
@@ -62,7 +62,6 @@ The data here is generic. Whatever is needed for certain purpose. The structure 
 
 ```
 Group {
-
   // generic properties here - primitives only
   float damage,
   float3 velocity
@@ -88,18 +87,36 @@ VoxelAccessor {
 
 This is object you use for updating and querying voxel.
 
+#### Voxels selector
+
+```
+VoxelsSelector {
+  VoxelAccessor[] getAll(),
+  VoxelAccessor[] slice(uint from, uint to),
+  VoxelAccessor[] splice(uint from, uint to, VoxelAccessor va = null),
+}
+```
+
+- `getAll()` getter for all voxel accessors
+- `slice(uint from, uint to)` take a piece of voxel accessors
+- `splice(uint from, uint to, VoxelAccessor va = null)` insert, replace or remove voxel accessor(s) // concept from [JavaScript splice](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice)
+
+This is object is used to point to multiple voxels.
+
 #### Group accessor
 
 ```
 GroupAccessor {
   float3 position,
-  quat rotation,
+  float3 rotation,
+  int voxelCount,
   Group group
 }
 ```
 
-- `position` current position of camera
-- `rotation` current rotation of camera
+- `position` current position of group
+- `rotation` current rotation of group in euler angles
+- `voxelCount` total voxel count in group
 - `group` structure described above
 
 This is object you use for updating and querying group.
@@ -132,6 +149,8 @@ Hit {
 - `voxel` voxel being hit
 - `length` ray total length
 
+
+
 ### Registers
 
 Engine can make impressive optimziations if it knows all possible variations of the voxel generic data. There for we have function:
@@ -163,13 +182,13 @@ Defining the camera.
 - `viewDistance` description in defintions
 - `fov` description in defintions
 
-`transformCamera(Camera camera, float3 position, quat rotation)` 
+`transformCamera(Camera camera, float3 position, float3 rotation)` 
 
 Transforming the camera. This can trigger streaming of partition(s) dependent on position and view distance.
 
 - `camera` camera object
 - `position` desired position of camera
-- `rotation` desired rotation of camera
+- `rotation` desired rotation of camera in euler angles
 
 `onGridChunkStream(Partition partition)` 
 
@@ -177,32 +196,28 @@ Event fired whenever engine needs to stream (in/out) a partition. Can be used of
 
 - `partition` description in defintions
 
-### Selection
+`Partition[] partitions = getAllActivePartitions(int3 coords = null)` 
+
+Get all stramed in or streaming in paritions at this moment.
+
+- `coords` if provided, will return 1 respestive partition or null if its not active
+
+### Selection and spawning
 
 `selectPartition(int3 coords)` 
 
-We select a one of the Streamed in paritions, to work with. All the things below will take place in this selected partition and its local coordinates.
+We select a one of the Streamed in paritions, to work with. All the things below will take place in this selected partition and its local coordinates. It should throw error, if parition is not active streamed in.
 
 - `coords` partition global 3d coordinates
 
-`selectGridRectAreaBegin(int3 start, int3 end)` 
+`VoxelsSelector voxelsSel = setVoxels(int3[] gridCellCoords, Voxel voxel)` 
 
-- `start` star position in grid, or bottom left corner
-- `end` end position in grid, or top right corner
+Spawns block voxel with all its properties in selected area, all of it. Returns those new voxels.
 
-Rectangle selection, but other popular forms/brushes should exist. This does nothing on its own, but is needed for next function below.
-
-`setVoxelsInArea(Voxel voxel)` 
-
-Spawns block voxel with all its properties in selected area, all of it. 
-
-- `voxel` description in defintions.
-
-`selectEnd()`
-
-Cancel the selection. Its auto canceled when starting a new one.
+- `gridCellCoords` grid cell coordinates where to spawn voxel
+- `voxel` description in defintions
  
-`VoxelAccessor[] voxels = selectVoxelInRectArea(int3 start, int3 end)`
+`VoxelsSelector voxelsSel = selectVoxelInRectArea(int3 start, int3 end)`
 
 Get all voxels in rectangular area.
 
@@ -212,18 +227,19 @@ Get all voxels in rectangular area.
 
 ### Grouping
 
-`GroupAccessor group = groupVoxels(VoxelAccessor[] voxels = null)` 
+`GroupAccessor group = groupVoxels(VoxelsSelector voxelsSel)` 
 
-Registers a voxel group. If the input value is null, it asumes that all voxels in active selection should be grouped.
-This very usefull to represent sort of a Entity, like a rock, that is composed from multiple voxels.
+Registers a voxel group. This very usefull to represent sort of a Entity, like a rock, that is composed from multiple voxels.
+
+Group can never be larger than one parition.
 
 `GroupAccessor group = getVoxelGroup(VoxelAccessor voxel)`
 
 Check/get if voxel is in a group.
 
-`VoxelAccessor[] voxels = getGroupVoxels(GroupAccessor group)`
+`VoxelsSelector voxelsSel = getGroupVoxels(GroupAccessor group)`
 
-To get all voxels in a group.
+To get all voxels in a group. Voxels belonging to a partition that is not yet streamed in wont be returned. This can be checked by 'GroupAccessor.voxelCount'
 
 ### Transforms
 
@@ -232,17 +248,18 @@ To get all voxels in a group.
 Transform group by given position and rotation.
 
 - `group` voxel group accessor
-- `position` desired position for voxel/group
-- `rotation` desired rotation for voxel/group
+- `position` desired position for group
+- `rotation` desired rotation for group in euler angles
 
 ### Updating
 
-`changeProperty<T = propery of Voxel>(VoxelAccessor voxel, keyof T property, valueof T value)` 
-`changeProperty<T = propery of Group>(GroupAccessor group, keyof T property, valueof T value)` 
+`changeProperty<T = propery of Voxel>(VoxelAccessor voxel, keyof T property, valueof T value)`\
+`changeProperty<T = propery of Voxel>(VoxelsSelector voxelSel, keyof T property, valueof T value)`\
+`changeProperty<T = propery of Group>(GroupAccessor group, keyof T property, valueof T value)`
 
 Change properties of an existing voxel or group of voxels
 
-- `voxel/group` voxel or voxel group accessor
+- `voxels/voxelSel/group` voxel accessor, voxel selection or voxel group accessor
 - `property` generic property
 - `value` generic property value
 
@@ -314,4 +331,8 @@ As you can see lots of voxe engines (Teardown, The Sandbox, Atomontage, etc.) ar
 #### What is meant with 'blocky'?
 
 Think of Minecraft, Teardown, etc. Blocks.
+
+#### Why do I need to deal with paritions?
+
+It is essential for procedural generation. And also for coordination system. Each partition has local one. If we use global coordinates, the numbers can get insanely large to impossible. 
 
