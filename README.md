@@ -253,9 +253,9 @@ Transform group by given position and rotation.
 
 ### Updating
 
-`changeProperty<T = propery of Voxel>(VoxelAccessor voxel, keyof T property, valueof T value)` 
-`changeProperty<T = propery of Voxel>(VoxelsSelector voxelSel, keyof T property, valueof T value)`
-`changeProperty<T = propery of Group>(GroupAccessor group, keyof T property, valueof T value)` 
+`changeProperty<T = propery of Voxel>(VoxelAccessor voxel, keyof T property, valueof T value)`\
+`changeProperty<T = propery of Voxel>(VoxelsSelector voxelSel, keyof T property, valueof T value)`\
+`changeProperty<T = propery of Group>(GroupAccessor group, keyof T property, valueof T value)`
 
 Change properties of an existing voxel or group of voxels
 
@@ -331,4 +331,8 @@ As you can see lots of voxe engines (Teardown, The Sandbox, Atomontage, etc.) ar
 #### What is meant with 'blocky'?
 
 Think of Minecraft, Teardown, etc. Blocks.
+
+#### Why do I need to deal with paritions?
+
+It is essential for procedural generation. And also for coordination system. Each partition has local one. If we use global coordinates, the numbers can get insanely large to impossible. 
 
