@@ -132,6 +132,8 @@ Hit {
 - `voxel` voxel being hit
 - `length` ray total length
 
+
+
 ### Registers
 
 Engine can make impressive optimziations if it knows all possible variations of the voxel generic data. There for we have function:
@@ -177,7 +179,7 @@ Event fired whenever engine needs to stream (in/out) a partition. Can be used of
 
 - `partition` description in defintions
 
-### Selection
+### Selection and spawning
 
 `selectPartition(int3 coords)` 
 
@@ -185,22 +187,12 @@ We select a one of the Streamed in paritions, to work with. All the things below
 
 - `coords` partition global 3d coordinates
 
-`selectGridRectAreaBegin(int3 start, int3 end)` 
+`VoxelAccessor[] voxels = setVoxels(int3[] gridCellCoords, Voxel voxel)` 
 
-- `start` star position in grid, or bottom left corner
-- `end` end position in grid, or top right corner
+Spawns block voxel with all its properties in selected area, all of it. Returns those new voxels.
 
-Rectangle selection, but other popular forms/brushes should exist. This does nothing on its own, but is needed for next function below.
-
-`setVoxelsInArea(Voxel voxel)` 
-
-Spawns block voxel with all its properties in selected area, all of it. 
-
-- `voxel` description in defintions.
-
-`selectEnd()`
-
-Cancel the selection. Its auto canceled when starting a new one.
+- `gridCellCoords` grid cell coordinates where to spawn voxel
+- `voxel` description in defintions
  
 `VoxelAccessor[] voxels = selectVoxelInRectArea(int3 start, int3 end)`
 
