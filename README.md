@@ -1,4 +1,4 @@
-# MMBVE API design documentation (v0.2)
+# MMBVE API design documentation (v0.3)
 
 Minimalist multipurpose blocky voxel engine API design documentation. With blocky we mean Minecraft/Teardown style.
 
@@ -62,7 +62,6 @@ The data here is generic. Whatever is needed for certain purpose. The structure 
 
 ```
 Group {
-
   // generic properties here - primitives only
   float damage,
   float3 velocity
@@ -94,12 +93,14 @@ This is object you use for updating and querying voxel.
 GroupAccessor {
   float3 position,
   float3 rotation,
+  int voxelCount,
   Group group
 }
 ```
 
 - `position` current position of group
 - `rotation` current rotation of group in euler angles
+- `voxelCount` total voxel count in group
 - `group` structure described above
 
 This is object you use for updating and querying group.
@@ -209,13 +210,15 @@ Get all voxels in rectangular area.
 Registers a voxel group. If the input value is null, it asumes that all voxels in active selection should be grouped.
 This very usefull to represent sort of a Entity, like a rock, that is composed from multiple voxels.
 
+Group can never be larger than one parition.
+
 `GroupAccessor group = getVoxelGroup(VoxelAccessor voxel)`
 
 Check/get if voxel is in a group.
 
 `VoxelAccessor[] voxels = getGroupVoxels(GroupAccessor group)`
 
-To get all voxels in a group.
+To get all voxels in a group. Voxels belonging to a partition that is not yet streamed in wont be returned. This can be checked by `GroupAccessor.voxelCount`
 
 ### Transforms
 
