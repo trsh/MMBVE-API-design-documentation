@@ -20,7 +20,8 @@ Camera {
   float3 position,
   float3 rotation,
   float viewDistance,
-  float fov
+  float fov,
+  int3 partitionCoords
 }
 ```
 
@@ -28,6 +29,7 @@ Camera {
 - `fov` field of view.
 - `position` current position of camera
 - `rotation` current rotation of camera in euler angles
+- `partitionCoords` partition coordinates where camera resides at this moment
 
 #### Partition:
 
@@ -180,6 +182,12 @@ Event fired whenever engine needs to stream (in/out) a partition. Can be used of
 
 - `partition` description in defintions
 
+`getAllActivePartitions(int3 coords = null)` 
+
+Get all stramed in or streaming in paritions at this moment. Always returned in specific order.
+
+- `coords` if provided, will return 1 respestive partition or null if its not active
+
 ### Selection and spawning
 
 `selectPartition(int3 coords)` 
@@ -218,7 +226,7 @@ Check/get if voxel is in a group.
 
 `VoxelAccessor[] voxels = getGroupVoxels(GroupAccessor group)`
 
-To get all voxels in a group. Voxels belonging to a partition that is not yet streamed in wont be returned. This can be checked by `GroupAccessor.voxelCount`
+To get all voxels in a group. Voxels belonging to a partition that is not yet streamed in wont be returned. This can be checked by 'GroupAccessor.voxelCount'
 
 ### Transforms
 
