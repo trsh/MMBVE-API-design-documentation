@@ -18,7 +18,7 @@ Ideally witten in C so can be used as header in HLSL/GLSL/C++/C and beyond (insp
 ```
 Camera {
   float3 position,
-  quat rotation,
+  float3 rotation,
   float viewDistance,
   float fov
 }
@@ -27,7 +27,7 @@ Camera {
 - `viewDistance` engines uses this to calculate when to stream in/out partitions. If camera position + view distance is out of current partition (in any direction) and in next one, it should be streamed in. And via versa.
 - `fov` field of view.
 - `position` current position of camera
-- `rotation` current rotation of camera
+- `rotation` current rotation of camera in euler angles
 
 #### Partition:
 
@@ -93,13 +93,13 @@ This is object you use for updating and querying voxel.
 ```
 GroupAccessor {
   float3 position,
-  quat rotation,
+  float3 rotation,
   Group group
 }
 ```
 
-- `position` current position of camera
-- `rotation` current rotation of camera
+- `position` current position of group
+- `rotation` current rotation of group in euler angles
 - `group` structure described above
 
 This is object you use for updating and querying group.
@@ -163,13 +163,13 @@ Defining the camera.
 - `viewDistance` description in defintions
 - `fov` description in defintions
 
-`transformCamera(Camera camera, float3 position, quat rotation)` 
+`transformCamera(Camera camera, float3 position, float3 rotation)` 
 
 Transforming the camera. This can trigger streaming of partition(s) dependent on position and view distance.
 
 - `camera` camera object
 - `position` desired position of camera
-- `rotation` desired rotation of camera
+- `rotation` desired rotation of camera in euler angles
 
 `onGridChunkStream(Partition partition)` 
 
@@ -232,8 +232,8 @@ To get all voxels in a group.
 Transform group by given position and rotation.
 
 - `group` voxel group accessor
-- `position` desired position for voxel/group
-- `rotation` desired rotation for voxel/group
+- `position` desired position for group
+- `rotation` desired rotation for group in euler angles
 
 ### Updating
 
